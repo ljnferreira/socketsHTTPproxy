@@ -1,3 +1,15 @@
+#-------------------------------------------------
+#   proxy_web.py
+#
+#   Servidor proxy HTTP Web multithreaded
+#
+#   Autores: 
+#   Gabriel Lavarini <lavarinimoreira@gmail.com>
+#   João Lucas Terra <jlterrafarias@gmail.com>
+#   Lucas Ferreira <ljnferreira@gmail.com>
+#
+#-------------------------------------------------
+
 import socket,sys,_thread,traceback
 
  
@@ -34,28 +46,34 @@ def main():
 def connection(conn, data, addr):
     try: 
         print(addr)
-        first_line = data.decode('latin-1').split("\n")[0]
+        # Obtém o conteúdo da primeira linha da requisição do cliente e exibe no log.
+        first_line = data.decode('latin-1').split("\n")[0] 
         print(first_line)
-        url = first_line.split(" ")[1]
         
+        # Obtém a url e a posição da última barra relativa a definição do protocolo na url para obter o endereço de destino.
+        url = first_line.split(" ")[1]
         http_pos = url.find("://")
+
         if http_pos == -1:
-            auxString = url
+            pureURL = url
         else:
-            auxString = url[(http_pos + 3):]
+            pureURL = url[(http_pos + 3):]
             
-        port_pos = auxString.find(":")
-        address_pos = auxString.find("/")
+        port_pos = pureURL.find(":")
+        address_pos = pureURL.find("/")
         if address_pos == -1:
-            address_pos = len(auxString)
+            address_pos = len(pureURL)
+
         server_address = ""
         port = -1
+
+        # Verifica se a url contém o número da porta, caso não contenha, define o mesmo como 80.
         if port_pos == -1 or address_pos < port_pos:
             port = 80
-            server_address = auxString[:address_pos]
+            server_address = pureURL[:address_pos]
         else:
-            port = int(auxString[(port_pos + 1):][:address_pos - port_pos -1])
-            server_address = auxString[:port_pos]
+            port = int(pureURL[(port_pos + 1):][:address_pos - port_pos -1])
+            server_address = pureURL[:port_pos]
 
         print(server_address)
         proxy_server(server_address,port,conn,data,addr)
@@ -86,7 +104,7 @@ def proxy_server(webserver, port, conn, data, addr):
         conn.close()
         print("\n\n[*] Conexões encerradas...")
         
-
+    #Caso dispare alguma exceção durante a execução da thread, a exceção é mostrada no log e as conexões são fechadas e a thread é encerrada
     except Exception as e:
         print(e)
         traceback.print_exc()

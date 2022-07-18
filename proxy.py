@@ -6,7 +6,7 @@
 #   Autores: 
 #   Gabriel Lavarini <lavarinimoreira@gmail.com>
 #   João Lucas Terra <jlterrafarias@gmail.com>
-#   Lucas Ferreira <ljnferreira@gmail.com>
+#   Lucas Ferreira <ljnferreira@gmail.com> <github.com/ljnferreira
 #
 #-------------------------------------------------
 
@@ -42,6 +42,9 @@ def main():
             print("[*] Aguardando requisições encerrarem...")
             print("[*] Pronto, foi um prazer te-lo como usuario do nosso serviço!")
             sys.exit(1)
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
 
 def connection(conn, data, addr):
     try: 
@@ -55,14 +58,18 @@ def connection(conn, data, addr):
         http_pos = url.find("://")
 
         if http_pos == -1:
-            pureURL = url
+            noProtocolURL = url
         else:
-            pureURL = url[(http_pos + 3):]
-            
-        port_pos = pureURL.find(":")
-        address_pos = pureURL.find("/")
+            noProtocolURL = url[(http_pos + 3):]
+
+        #Verifica se há porta na url retornando a posição do caractere :    
+        port_pos = noProtocolURL.find(":")
+
+        # Procura a posição da primeira barra para determinar o fim do dominio
+        address_pos = noProtocolURL.find("/")
+
         if address_pos == -1:
-            address_pos = len(pureURL)
+            address_pos = len(noProtocolURL)
 
         server_address = ""
         port = -1
@@ -70,10 +77,10 @@ def connection(conn, data, addr):
         # Verifica se a url contém o número da porta, caso não contenha, define o mesmo como 80.
         if port_pos == -1 or address_pos < port_pos:
             port = 80
-            server_address = pureURL[:address_pos]
+            server_address = noProtocolURL[:address_pos]
         else:
-            port = int(pureURL[(port_pos + 1):][:address_pos - port_pos -1])
-            server_address = pureURL[:port_pos]
+            port = int(noProtocolURL[(port_pos + 1):][:address_pos - port_pos -1])
+            server_address = noProtocolURL[:port_pos]
 
         print(server_address)
         proxy_server(server_address,port,conn,data,addr)

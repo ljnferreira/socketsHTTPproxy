@@ -4,9 +4,9 @@
 #   Servidor proxy HTTP Web multithreaded
 #
 #   Autores: 
-#   Gabriel Lavarini <lavarinimoreira@gmail.com>
-#   João Lucas Terra <jlterrafarias@gmail.com>
-#   Lucas Ferreira <ljnferreira@gmail.com> <github.com/ljnferreira
+#   Gabriel Lavarini <lavarinimoreira@gmail.com> <github.com/lavarinimoreira>
+#   João Lucas Terra <jlterrafarias@gmail.com> <github.com/ja1za1>
+#   Lucas Ferreira <ljnferreira@gmail.com> <github.com/ljnferreira>
 #
 #-------------------------------------------------
 
@@ -21,7 +21,7 @@ def main():
     try:
         s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind(("127.0.0.1", PORTA))
+        s.bind(("10.0.0.100", PORTA))
         s.listen(MAXIMO_CONEXOES)
         print("[*] Inicializando Socket...")
         print("[*] Pronto.")
@@ -42,6 +42,11 @@ def main():
             print("[*] Aguardando requisições encerrarem...")
             print("[*] Pronto, foi um prazer te-lo como usuario do nosso serviço!")
             sys.exit(1)
+            
+        # Essa exceção captura todas as exceções que não sejam interrupção de 
+        # teclado para permitir que o programa continue rodando mesmo que seja 
+        # disparada uma excessão, como ao não se ter mais memoria para criação
+        # de nova thread.
         except Exception as e:
             print(e)
             traceback.print_exc()
@@ -91,20 +96,21 @@ def connection(conn, data, addr):
 def proxy_server(webserver, port, conn, data, addr):
     print("{} {} {} {}".format(webserver, port, conn, addr))
     try:
-        print("\n\n[*] Abrindo conexão com o servidor ...")
+        print("\n[*] Abrindo conexão com o servidor ...")
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((webserver, port))
-        print("\n\n[*] Enviando requisição...")
+        print("\n[*] Enviando requisição...")
         s.send(data)
+        print("\n[*] Recebendo Dados...")
         while 1:
-            print("\n\n[*] Recebendo Dados...")
             reply = s.recv(TAMANHO_BUFFER)
             
             if len(reply) > 0:
+                # Enviando resposta recebida ao cliente solicitante
                 conn.sendall(reply)
-                print("[*] Requisição enviada: {} > {}".format(addr[0],webserver))
+                print("\n[*] Resposta de requisição enviada ao cliente: {} > {}".format(webserver, addr[0]))
             else:
-                print("\n\n[*] Dados obtidos com sucesso...")
+                print("\n[*] Dados obtidos com sucesso...")
                 break        
         
         s.close()
